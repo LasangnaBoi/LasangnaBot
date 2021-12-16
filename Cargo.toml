@@ -1,0 +1,21 @@
+[package]
+name = "lasangnabot"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tracing = "0.1"
+tracing-subscriber = "0.2"
+tracing-futures = "0.2"
+
+[dependencies.songbird]
+version = "0.2"
+features = ["builtin-queue"]
+
+[dependencies.serenity]
+version = "0.10"
+features = ["builder", "cache", "framework", "model", "client", "standard_framework", "voice", "rustls_backend"]
+
+[dependencies.tokio]
+version = "1.0"
+features = ["macros", "rt-multi-thread", "signal"]
