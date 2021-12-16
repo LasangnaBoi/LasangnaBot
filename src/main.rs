@@ -76,35 +76,35 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 #[only_in(guilds)]
 async fn join(ctx: &Context, msg: &Message) -> CommandResult {
-    voice::join(ctx, msg).await;
+    voice::join(ctx, msg).await.expect("error joining");
     Ok(())
 }
 
 #[command]
 #[only_in(guilds)]
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
-    voice::leave(ctx, msg).await;
+    voice::leave(ctx, msg).await.expect("error leaving channel"); 
     Ok(())
 }
 
 #[command]
 #[only_in(guilds)]
-async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    voice::queue(ctx, msg, args).await;
+async fn play(ctx: &Context, msg: &Message) -> CommandResult {
+    voice::queue(ctx, msg).await.expect("error playing song");
     Ok(())
 }
 
 #[command]
 #[only_in(guilds)]
 async fn skip(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
-    voice::skip(ctx, msg, _args).await;
+    voice::skip(ctx, msg, _args).await.expect("error skipping song");
     Ok(())
 }
 
 #[command]
 #[only_in(guilds)]
 async fn stop(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
-    voice::stop(ctx, msg, _args).await;
+    voice::stop(ctx, msg, _args).await.expect("error stopping");
     Ok(())
 }
 

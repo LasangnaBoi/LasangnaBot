@@ -4,28 +4,16 @@
  */
 
 use crate::check_msg;
-use std::sync::{
-    atomic::{AtomicUsize, Ordering},
-    Arc,
-};
 use serenity::{
-    async_trait,
     client::Context,
     framework::
         standard::{
             Args,
             CommandResult,
         },
-    http::Http,
-    model::{channel::Message, gateway::Ready, misc::Mentionable, prelude::ChannelId},
+    model::{channel::Message, misc::Mentionable},
 };
-use songbird::{
-    input::restartable::Restartable,
-    Event,
-    EventContext,
-    EventHandler as VoiceEventHandler,
-    TrackEvent,
-};
+use songbird::input::restartable::Restartable;
 
 //join voice channel
 pub async fn join(ctx: &Context, msg: &Message) -> CommandResult {
@@ -51,7 +39,7 @@ pub async fn join(ctx: &Context, msg: &Message) -> CommandResult {
         .expect("Songbird Voice client placed in at initialisation.")
         .clone();
 
-    let (handle_lock, success) = manager.join(guild_id, connect_to).await;
+    let (_handle_lock, success) = manager.join(guild_id, connect_to).await;
 
     if let Ok(_channel) = success {
         check_msg(
@@ -59,21 +47,6 @@ pub async fn join(ctx: &Context, msg: &Message) -> CommandResult {
                 .say(&ctx.http, &format!("Joined {}", connect_to.mention()))
                 .await,
         );
-
-        let chan_id = msg.channel_id;
-
-        let send_http = ctx.http.clone();
-
-        let mut handle = handle_lock.lock().await;
-
-        handle.add_global_event(
-            Event::Track(TrackEvent::End),
-            TrackEndNotifier {
-                chan_id,
-                http: send_http,
-            },
-        );
-
 
     } else {
         check_msg(
@@ -84,38 +57,6 @@ pub async fn join(ctx: &Context, msg: &Message) -> CommandResult {
     }
 
     Ok(())
-}
-
-struct TrackEndNotifier {
-    chan_id: ChannelId,
-    http: Arc<Http>,
-}
-
-#[async_trait]
-impl VoiceEventHandler for TrackEndNotifier {
-    async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
-        if let EventContext::Track(track_list) = ctx {
-            check_msg(
-                self.chan_id
-                    .say(&self.http, &format!("Tracks ended: {}.", track_list.len()))
-                    .await,
-            );
-        }
-
-        None
-    }
-}
-
-struct ChannelDurationNotifier {
-    count: Arc<AtomicUsize>,
-}
-
-#[async_trait]
-impl VoiceEventHandler for ChannelDurationNotifier {
-    async fn act(&self, _ctx: &EventContext<'_>) -> Option<Event> {
-        let count_before = self.count.fetch_add(1, Ordering::Relaxed);
-        None
-    }
 }
 
 //leave voice channel
@@ -147,30 +88,8 @@ pub async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 //add song to queue
-pub async fn queue(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let url = match args.single::<String>() {
-        Ok(url) => url,
-        Err(_) => {
-            check_msg(
-                msg.channel_id
-                    .say(&ctx.http, "Must provide a URL to a video or audio")
-                    .await,
-            );
-
-            return Ok(());
-        },
-    };
-
-    if !url.starts_with("http") {
-        check_msg(
-            msg.channel_id
-                .say(&ctx.http, "Must provide a valid URL")
-                .await,
-        );
-
-        return Ok(());
-    }
-
+pub async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
+    let url = &msg.content[5..];
     let guild = msg.guild(&ctx.cache).await.unwrap();
     let guild_id = guild.id;
 
@@ -182,9 +101,7 @@ pub async fn queue(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;
 
-        // Here, we use lazy restartable sources to make sure that we don't pay
-        // for decoding, playback on tracks which aren't actually live yet.
-        let source = match Restartable::ytdl(url, true).await {
+        let source = match Restartable::ytdl_search(url, true).await {
             Ok(source) => source,
             Err(why) => {
                 println!("Err starting source: {:?}", why);
