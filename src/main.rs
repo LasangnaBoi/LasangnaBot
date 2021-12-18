@@ -90,7 +90,7 @@ async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 #[only_in(guilds)]
 async fn play(ctx: &Context, msg: &Message) -> CommandResult {
-    voice::queue(ctx, msg).await.expect("error playing song");
+    voice::yt(ctx, msg).await.expect("error finding song");
     Ok(())
 }
 

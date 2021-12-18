@@ -13,7 +13,8 @@ use serenity::{
         },
     model::{channel::Message, misc::Mentionable},
 };
-use songbird::input::restartable::Restartable;
+use songbird::{input::ytdl_search, create_player};
+use serenity::utils::Colour;
 
 //join voice channel
 pub async fn join(ctx: &Context, msg: &Message) -> CommandResult {
@@ -87,21 +88,24 @@ pub async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-//add song to queue
-pub async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
-    let url = &msg.content[5..];
+//play song from youtube
+pub async fn yt(ctx: &Context, msg: &Message) -> CommandResult {
+    let query = &msg.content[5..];
     let guild = msg.guild(&ctx.cache).await.unwrap();
     let guild_id = guild.id;
 
+    //create manager
     let manager = songbird::get(ctx)
         .await
-        .expect("Songbird Voice client placed in at initialisation.")
+        .expect("songbird error")
         .clone();
 
+    //create audio source
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;
 
-        let source = match Restartable::ytdl_search(url, true).await {
+        //get source from YouTube
+        let source = match ytdl_search(query).await {
             Ok(source) => source,
             Err(why) => {
                 println!("Err starting source: {:?}", why);
@@ -112,24 +116,53 @@ pub async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
             },
         };
 
-        handler.enqueue_source(source.into());
+        //create embed
+        //title
+        let title = source.metadata.title.as_ref().unwrap();
+        //channel
+        let channel = source.metadata.channel.as_ref().unwrap();
+        //image
+        let thumbnail = source.metadata.thumbnail.as_ref().unwrap();
+        //embed
+        let url = source.metadata.source_url.as_ref().unwrap();
+        //duration
+        let time = source.metadata.duration.as_ref().unwrap();
+        let minutes = time.as_secs()/60;
+        let seconds = time.as_secs()-minutes*60;
+        let duration = format!("{}:{:02}", minutes, seconds);
+        //color
+        let colour = Colour::from_rgb(149, 8, 2);
+        assert_eq!(colour.r(), 149);
+        assert_eq!(colour.g(), 8);
+        assert_eq!(colour.b(), 2);
+        assert_eq!(colour.tuple(), (149, 8, 2));
+        let _ = msg.channel_id.send_message(&ctx.http, |m| {
+            m.content("Added to queue:");
+            m.embed(|e| {
+                e.title(title);
+                e.colour(colour);
+                e.description(channel);
+                e.field("duration: ", duration, false);
+                e.thumbnail(thumbnail);
+                e.url(url);
+                e
+            });
+            m
+        }).await;
+       
+        //add to queue
+        let (mut audio, _) = create_player(source);
+        audio.set_volume(0.5);
+        handler.enqueue(audio);
 
-        check_msg(
-            msg.channel_id
-                .say(
-                    &ctx.http,
-                    format!("Added song to queue: position {}", handler.queue().len()),
-                )
-                .await,
-        );
-    } else {
+    //if not in a voice channel
+    } else { 
         check_msg(
             msg.channel_id
                 .say(&ctx.http, "Not in a voice channel to play in")
                 .await,
         );
     }
-
     Ok(())
 }
 
@@ -167,7 +200,7 @@ pub async fn skip(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     Ok(())
 }
 
-//stop playin
+//stop playing
 pub async fn stop(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     let guild_id = guild.id;
