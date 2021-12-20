@@ -7,6 +7,7 @@
 mod voice;
 
 use std::env;
+use tokio::join;
 use songbird::SerenityInit;
 use serenity::client::Context;
 use serenity::{
@@ -19,7 +20,7 @@ use serenity::{
             macros::{command, group},
         },
     },
-    model::{channel::Message, gateway::Ready},
+    model::{channel::Message, gateway::{Ready, Activity}},
     Result as SerenityResult,
 };
 
@@ -28,8 +29,10 @@ struct Handler;
 #[async_trait]
 impl EventHandler for Handler {
     /// On connect
-    async fn ready(&self, _: Context, ready: Ready) {
+    async fn ready(&self, ctx: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
+        let t1 = ctx.set_activity(Activity::listening("my parents fight"));
+        join!(t1);
     }
 }
 
@@ -40,7 +43,10 @@ async fn main()
    
     let token = env::var("DISCORD_TOKEN")
         .expect("Expected a token in the environment");
-    
+
+    let owner_id = env::var("OWNER_ID")
+        .expect("Expected user ID in the environment");
+
     let framework = StandardFramework::new()
         .configure(|c| c
                    .prefix("!"))
@@ -63,7 +69,7 @@ async fn main()
 }
 
 #[group]
-#[commands(ping, join, leave, play, skip, stop)]
+#[commands(ping, join, leave, play, stop)]
 pub struct General;
 
 #[command]

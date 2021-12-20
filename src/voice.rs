@@ -159,7 +159,7 @@ pub async fn yt(ctx: &Context, msg: &Message) -> CommandResult {
     } else { 
         check_msg(
             msg.channel_id
-                .say(&ctx.http, "Not in a voice channel to play in")
+                .say(&ctx.http, "Must be in a voice channel to use that command!")
                 .await,
         );
     }
@@ -192,7 +192,7 @@ pub async fn skip(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     } else {
         check_msg(
             msg.channel_id
-                .say(&ctx.http, "Not in a voice channel to play in")
+                .say(&ctx.http, "Must be in a voice channel to use that command!")
                 .await,
         );
     }
@@ -219,7 +219,7 @@ pub async fn stop(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     } else {
         check_msg(
             msg.channel_id
-                .say(&ctx.http, "Not in a voice channel to play in")
+                .say(&ctx.http, "Must be in a voice channel to use that command!")
                 .await,
         );
     }
