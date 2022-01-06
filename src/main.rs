@@ -44,9 +44,6 @@ async fn main()
     let token = env::var("DISCORD_TOKEN")
         .expect("Expected a token in the environment");
 
-    let owner_id = env::var("OWNER_ID")
-        .expect("Expected user ID in the environment");
-
     let framework = StandardFramework::new()
         .configure(|c| c
                    .prefix("!"))
@@ -69,7 +66,7 @@ async fn main()
 }
 
 #[group]
-#[commands(ping, join, leave, play, stop)]
+#[commands(ping, join, leave, play, skip, stop)]
 pub struct General;
 
 #[command]

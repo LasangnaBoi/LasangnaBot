@@ -1,5 +1,5 @@
 /*
- * voice.rs
+ * voice.rs, LasangnaBoi 2022
  * voice channel functionality
  */
 
@@ -16,7 +16,7 @@ use serenity::{
 use songbird::{input::ytdl_search, create_player};
 use serenity::utils::Colour;
 
-//join voice channel
+///join voice channel
 pub async fn join(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     let guild_id = guild.id;
@@ -60,7 +60,7 @@ pub async fn join(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-//leave voice channel
+///leave voice channel
 pub async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     let guild_id = guild.id;
@@ -88,7 +88,7 @@ pub async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-//play song from youtube
+///play song from youtube
 pub async fn yt(ctx: &Context, msg: &Message) -> CommandResult {
     let query = &msg.content[5..];
     let guild = msg.guild(&ctx.cache).await.unwrap();
@@ -166,7 +166,7 @@ pub async fn yt(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-//skip the track
+///skip the track
 pub async fn skip(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     let guild_id = guild.id;
@@ -200,7 +200,7 @@ pub async fn skip(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     Ok(())
 }
 
-//stop playing
+///stop playing
 pub async fn stop(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     let guild_id = guild.id;
