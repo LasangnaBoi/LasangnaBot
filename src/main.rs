@@ -53,51 +53,10 @@ impl EventHandler for Handler {
 
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
-
+/*
         let _guild_id = GuildId(yourtestguildidhere);
-        /*
         let _commands = GuildId::set_application_commands(&guild_id, &ctx.http, |commands| {
             commands
-                .create_application_command(|command| {
-                    command.name("ping").description("A ping command")
-                })
-                .create_application_command(|command| {
-                    command
-                        .name("join")
-                        .description("join voice channel")
-                })
-                .create_application_command(|command| {
-                    command
-                        .name("play")
-                        .description("search youtube for a song")
-                        .create_option(|option| {
-                            option
-                                .name("query")
-                                .description("what to search youtube for")
-                                .kind(ApplicationCommandOptionType::String)
-                                .required(true)
-                            })
-                })
-                .create_application_command(|command| {
-                    command
-                        .name("skip")
-                        .description("skip the current song")
-                })
-                .create_application_command(|command| {
-                    command
-                        .name("stop")
-                        .description("stop playing and clear the queue")
-                })
-                .create_application_command(|command| {
-                    command
-                        .name("playing")
-                        .description("get info for the current song")
-                })
-                .create_application_command(|command| {
-                    command
-                        .name("queue")
-                        .description("get info for the queue")
-                })
         })
         .await;
 */
@@ -144,7 +103,6 @@ impl EventHandler for Handler {
                         .description("get info for the queue")
                 })
         })
-
             .await;
     }
 }
