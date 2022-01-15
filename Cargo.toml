@@ -1,6 +1,6 @@
 [package]
 name = "lasangnabot"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 [dependencies]
@@ -10,11 +10,12 @@ tracing-futures = "0.2"
 
 [dependencies.songbird]
 git = "https://github.com/serenity-rs/songbird"
-features = ["builtin-queue"]
+features = ["builtin-queue", "serenity"]
 
 [dependencies.serenity]
 version = "0.10"
-features = ["builder", "cache", "framework", "model", "client", "standard_framework", "voice", "rustls_backend"]
+default-features = false
+features = ["builder", "cache", "model", "client", "voice", "unstable_discord_api", "rustls_backend"]
 
 [dependencies.tokio]
 version = "1.0"
