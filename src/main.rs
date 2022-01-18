@@ -1,133 +1,131 @@
 /*
- * LasangnaBot
- * LasangnaBoi 2021
+ * LasngnaBot
+ * LasangnaBoi 2022
  * a discord bot made in Rust
  */
 
 mod voice;
+
+use tokio::join;
+use songbird::SerenityInit;
+use serenity::client::Context;
 use serenity::{
     async_trait,
-    model::{
-        gateway::Ready,
-        id::GuildId,
-        interactions::{
-            application_command::{
-            ApplicationCommandOptionType, ApplicationCommand},
-            Interaction,
-            InteractionResponseType,
+    client::{Client, EventHandler},
+    framework::{
+        StandardFramework,
+        standard::{
+            Args, CommandResult,
+            macros::{command, group},
         },
     },
-    prelude::*,
+    model::{channel::Message, gateway::{Ready, Activity}},
+    Result as SerenityResult,
 };
-use songbird::SerenityInit;
 
 struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
-    async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
-        if let Interaction::ApplicationCommand(command) = interaction {
-            let content = match command.data.name.as_str() {
-                "ping" => "Hey, I'm alive!".to_string(),
-                "join" => voice::join(&ctx, &command).await,
-                "play" => voice::play(&ctx, &command).await,
-                "skip" => voice::skip(&ctx, &command).await,
-                "stop" => voice::stop(&ctx, &command).await,
-                "playing" => voice::playing(&ctx, &command).await,
-                "queue" => voice::queue(&ctx, &command).await,
-                _ => "not implemented :(".to_string(),
-            };
-
-            if let Err(why) = command
-                .create_interaction_response(&ctx.http, |response| {
-                    response
-                        .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| message.content(content))
-                })
-                .await
-            {
-                println!("Cannot respond to slash command: {}", why);
-            }
-        }
-    }
-
+    /// On connect
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
-/*
-        let _guild_id = GuildId(yourtestguildidhere);
-        let _commands = GuildId::set_application_commands(&guild_id, &ctx.http, |commands| {
-            commands
-        })
-        .await;
-*/
-        let _global_commands = ApplicationCommand::set_global_application_commands(&ctx.http, |commands| {
-            commands
-                .create_application_command(|command| {
-                    command.name("ping").description("A ping command")
-                })
-                .create_application_command(|command| {
-                    command
-                        .name("join")
-                        .description("join voice channel")
-                })
-                .create_application_command(|command| {
-                    command
-                        .name("play")
-                        .description("search youtube for a song")
-                        .create_option(|option| {
-                            option
-                                .name("query")
-                                .description("what to search youtube for")
-                                .kind(ApplicationCommandOptionType::String)
-                                .required(true)
-                            })
-                })
-                .create_application_command(|command| {
-                    command
-                        .name("skip")
-                        .description("skip the current song")
-                })
-                .create_application_command(|command| {
-                    command
-                        .name("stop")
-                        .description("stop playing and clear the queue")
-                })
-                .create_application_command(|command| {
-                    command
-                        .name("playing")
-                        .description("get info for the current song")
-                })
-                .create_application_command(|command| {
-                    command
-                        .name("queue")
-                        .description("get info for the queue")
-                })
-        })
-            .await;
+        let t1 = ctx.set_activity(Activity::listening("my parents fight"));
+        join!(t1);
     }
 }
 
 #[tokio::main]
-async fn main() {
-    // Configure the client with your Discord bot token in the environment.
-    let token = <yourdiscordtokenhere>;
+async fn main()
+{
+    tracing_subscriber::fmt::init();
 
-    // The Application Id is usually the Bot User Id.
-    let application_id: u64 = <yourapplicationidhere>;
+    let token = "ODkwNDUxNTI1Mzc2MjgyNjI0.YUv_mw.aw5eh6xtouztlY2E9WGJGadkC8E";
 
-    // Build our client.
-    let mut client = Client::builder(token)
+    let framework = StandardFramework::new()
+        .configure(|c| c
+                   .prefix("$"))
+        .group(&GENERAL_GROUP);
+
+    let mut client = Client::builder(&token)
         .event_handler(Handler)
+        .framework(framework)
         .register_songbird()
-        .application_id(application_id)
         .await
         .expect("Error creating client");
 
-    // Finally, start a single shard, and start listening to events.
-    //
-    // Shards will automatically attempt to reconnect, and will perform
-    // exponential backoff until it reconnects.
-    if let Err(why) = client.start().await {
-        println!("Client error: {:?}", why);
+    tokio::spawn(async move {
+        let _ = client.start().await.map_err(|why| println!("Client ended: {:?}", why));
+    });
+
+    tokio::signal::ctrl_c().await
+    .expect("not a command");
+    println!("Received Ctrl-C, shutting down.");
+}
+
+#[group]
+#[commands(ping, join, leave, play, skip, stop, playing, queue)]
+pub struct General;
+
+#[command]
+#[only_in(guilds)]
+async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
+    check_msg(msg.channel_id.say(&ctx.http, "pong!").await);
+    Ok(())
+}
+
+#[command]
+#[only_in(guilds)]
+async fn join(ctx: &Context, msg: &Message) -> CommandResult {
+    voice::join(ctx, msg).await.expect("error joining");
+    Ok(())
+}
+
+#[command]
+#[only_in(guilds)]
+async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
+    voice::leave(ctx, msg).await.expect("error leaving channel");
+    Ok(())
+}
+
+#[command]
+#[only_in(guilds)]
+async fn play(ctx: &Context, msg: &Message) -> CommandResult {
+    voice::play(ctx, msg).await.expect("error finding song");
+    Ok(())
+}
+
+#[command]
+#[only_in(guilds)]
+async fn skip(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
+    voice::skip(ctx, msg, _args).await.expect("error skipping song");
+    Ok(())
+}
+
+#[command]
+#[only_in(guilds)]
+async fn stop(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
+    voice::stop(ctx, msg, _args).await.expect("error stopping");
+    Ok(())
+}
+
+#[command]
+#[only_in(guilds)]
+async fn playing(ctx: &Context, msg: &Message) -> CommandResult {
+    voice::playing(ctx, msg).await.expect("error getting current song");
+    Ok(())
+}
+
+#[command]
+#[only_in(guilds)]
+async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
+    voice::queue(ctx, msg).await.expect("error getting queue");
+    Ok(())
+}
+
+/// Checks that a message successfully sent; if not, then logs why to stdout.
+fn check_msg(result: SerenityResult<Message>) {
+    if let Err(why) = result {
+        println!("Error sending message: {:?}", why);
     }
 }
