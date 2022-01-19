@@ -179,7 +179,7 @@ pub async fn skip(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
         let queue = handler.queue();
 
         if queue.is_empty() {
-            check_msg(msg.channel_id.say(&ctx.http, format!("The queue is empty!")).await);
+            check_msg(msg.channel_id.say(&ctx.http, "The queue is empty!".to_string()).await);
             return Ok(());
 
         } else {
@@ -244,7 +244,7 @@ pub async fn playing(ctx: &Context, msg: &Message) -> CommandResult {
         let queue = handler.queue();
 
         if queue.is_empty() {
-            check_msg(msg.channel_id.say(&ctx.http, format!("Nothing is being played!")).await);
+            check_msg(msg.channel_id.say(&ctx.http, "Nothing is being played!".to_string()).await);
             return Ok(());
 
         } else {
@@ -303,7 +303,7 @@ pub async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
         let queue = handler.queue();
 
         if queue.is_empty() {
-            check_msg(msg.channel_id.say(&ctx.http, format!("The queue is empty!")).await);
+            check_msg(msg.channel_id.say(&ctx.http, "The queue is empty!".to_string()).await);
             return Ok(());
         }
 

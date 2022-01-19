@@ -1,10 +1,11 @@
 /*
- * LasngnaBot
+ * LasangnaBot
  * LasangnaBoi 2022
  * a discord bot made in Rust
  */
-
+#![feature(path_try_exists)]
 mod voice;
+mod guildfiles;
 
 use tokio::join;
 use songbird::SerenityInit;
@@ -40,11 +41,11 @@ async fn main()
 {
     tracing_subscriber::fmt::init();
 
-    let token = "ODkwNDUxNTI1Mzc2MjgyNjI0.YUv_mw.aw5eh6xtouztlY2E9WGJGadkC8E";
+    let token = "<your_token_here>";
 
     let framework = StandardFramework::new()
         .configure(|c| c
-                   .prefix("$"))
+                   .prefix("!"))
         .group(&GENERAL_GROUP);
 
     let mut client = Client::builder(&token)
@@ -53,7 +54,6 @@ async fn main()
         .register_songbird()
         .await
         .expect("Error creating client");
-
     tokio::spawn(async move {
         let _ = client.start().await.map_err(|why| println!("Client ended: {:?}", why));
     });
@@ -64,7 +64,7 @@ async fn main()
 }
 
 #[group]
-#[commands(ping, join, leave, play, skip, stop, playing, queue)]
+#[commands(ping, join, leave, play, skip, stop, playing, queue, file)]
 pub struct General;
 
 #[command]
@@ -120,6 +120,13 @@ async fn playing(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
     voice::queue(ctx, msg).await.expect("error getting queue");
+    Ok(())
+}
+
+#[command]
+#[only_in(guilds)]
+async fn file(ctx: &Context, msg: &Message) -> CommandResult {
+    guildfiles::init_guild(ctx, msg).await.expect("unable to write file");
     Ok(())
 }
 
