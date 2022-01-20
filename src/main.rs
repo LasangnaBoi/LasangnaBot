@@ -7,6 +7,8 @@
 mod voice;
 mod guildfiles;
 
+use dotenv::dotenv;
+use std::env;
 use tokio::join;
 use songbird::SerenityInit;
 use serenity::client::Context;
@@ -39,9 +41,10 @@ impl EventHandler for Handler {
 #[tokio::main]
 async fn main()
 {
+    dotenv().expect("create .env file in project root");
     tracing_subscriber::fmt::init();
 
-    let token = "<your_token_here>";
+    let token = env::var("DISCORD_TOKEN").expect("expected discord token in .env file");
 
     let framework = StandardFramework::new()
         .configure(|c| c
@@ -64,7 +67,7 @@ async fn main()
 }
 
 #[group]
-#[commands(ping, join, leave, play, skip, stop, playing, queue, file)]
+#[commands(ping, join, leave, play, skip, stop, playing, queue, addfav,)]
 pub struct General;
 
 #[command]
@@ -125,8 +128,8 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
 
 #[command]
 #[only_in(guilds)]
-async fn file(ctx: &Context, msg: &Message) -> CommandResult {
-    guildfiles::init_guild(ctx, msg).await.expect("unable to write file");
+async fn addfav(ctx: &Context, msg: &Message) -> CommandResult {
+    guildfiles::addfav(ctx, msg).await.expect("unable to write file");
     Ok(())
 }
 

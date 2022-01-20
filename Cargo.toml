@@ -20,3 +20,6 @@ features = ["builder", "cache", "model", "client", "voice", "framework", "standa
 [dependencies.tokio]
 version = "1.0"
 features = ["macros", "rt-multi-thread", "signal"]
+
+[dependencies.dotenv]
+git = "https://github.com/dotenv-rs/dotenv"

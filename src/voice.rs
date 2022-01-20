@@ -1,5 +1,6 @@
 /*
- * voice.rs, LsangnaBoi 2022
+ * voice.rs
+ * LasangnaBoi 2022
  * voice channel functionality
  */
 
@@ -306,14 +307,12 @@ pub async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
             check_msg(msg.channel_id.say(&ctx.http, "The queue is empty!".to_string()).await);
             return Ok(());
         }
-
+        
         //create embed
         let _ = msg.channel_id.send_message(&ctx.http, |m| {
-            let i: usize;
+            let mut i = 10;
             if queue.len() < 10 {
                 i = queue.len();
-            } else {
-                i = 10;
             }
             //color
             let colour = Colour::from_rgb(149, 8, 2);
