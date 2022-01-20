@@ -1,3 +1,4 @@
 /target
 /guild_files
+Cargo.lock
 .env
