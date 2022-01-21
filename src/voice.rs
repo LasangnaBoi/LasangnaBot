@@ -145,8 +145,7 @@ pub async fn play(ctx: &Context, msg: &Message) -> CommandResult {
                 e.thumbnail(thumbnail);
                 e.url(url);
                 e
-            });
-            m
+            })
         }).await;
 
         //add to queue
@@ -275,8 +274,7 @@ pub async fn playing(ctx: &Context, msg: &Message) -> CommandResult {
                     e.thumbnail(thumbnail);
                     e.url(url);
                     e
-                });
-                m
+                })
             }).await;
         }
     } else {
@@ -337,8 +335,7 @@ pub async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
                     e.field(arg1, duration, false);
                 }
                 e
-            });
-            m
+            })
         }).await;
     } else {
        check_msg(

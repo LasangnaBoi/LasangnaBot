@@ -120,3 +120,65 @@ async fn write_songdata(queue: &songbird::tracks::TrackQueue, path: &str) -> Res
     f.flush().expect("unable to flush");
     Ok(())
 }
+
+///display list of favorites
+pub async fn favs(ctx: &Context, msg: &Message) -> Result<()> {
+    let guild = msg.guild(&ctx.cache).await.unwrap();
+    let guild_id = guild.id;
+    let mut url = String::from("https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Question_mark_%28black%29.svg/800px-Question_mark_%28black%29.svg.png");
+    if let Some(icon) = guild.icon_url() {
+        url = icon;
+    }
+    //let image = guild.icon_url().unwrap();
+    let guild_name = guild.name;
+    let favpath = format!("./guild_files/{}", guild_id);
+    let size: i32 =  read_dir(&favpath).unwrap().count().try_into().expect("failed to parse");
+
+    if size == 0 {
+        msg.reply(ctx, "No songs are saved to favorites!".to_string())
+            .await
+            .expect("guild data has not been initialized");
+        return Ok(());
+    }
+
+    //embed
+    let _ = msg.channel_id.send_message(&ctx.http, |m| {
+        let mut i = 10;
+        if size < 10 {
+            i = size;
+        }
+        //color
+        let colour = Colour::from_rgb(149, 8, 2);
+        assert_eq!(colour.r(), 149);
+        assert_eq!(colour.g(), 8);
+        assert_eq!(colour.b(), 2);
+        assert_eq!(colour.tuple(), (149, 8, 2));
+        m.embed(|e| {
+            e.title(format!("{} favorites", guild_name));
+            e.thumbnail(url);
+            e.description(format!("{} songs in favorites", size));
+            e.color(colour);
+            for i in 0..i {
+                //iterate through info for guild files
+                let song = read_dir(&favpath).expect("failed to get path")
+                    .nth(i.try_into().expect("failed to parse"));
+                //open the file and create an embed field
+                let path = song.unwrap().unwrap().path().to_str().unwrap().to_string();
+                if let Ok(mut lines) = read_lines(format!("{}/data.txt", &path)) {
+                    let title = &lines.next().expect("failed to read line").expect("failed to read line");
+                    let channel = &lines.nth(3).expect("failed to read line").expect("failed to read line");
+                    e.field(format!("{}. {}", i+1, title), channel, false);
+                }
+            }
+            e
+        })
+    }).await;
+    Ok(())
+}
+
+///read lines from a file
+fn read_lines<P>(filename: P) -> Result<Lines<BufReader<File>>>
+where P: AsRef<Path>, {
+    let file = File::open(filename)?;
+    Ok(BufReader::new(file).lines())
+}
