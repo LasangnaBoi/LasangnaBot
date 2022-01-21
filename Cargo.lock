@@ -662,6 +662,7 @@ name = "lasangnabot"
 version = "0.1.2"
 dependencies = [
  "dotenv",
+ "rand 0.8.4",
  "serenity",
  "songbird",
  "tokio",

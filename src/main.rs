@@ -67,7 +67,7 @@ async fn main()
 }
 
 #[group]
-#[commands(ping, join, leave, play, skip, stop, playing, queue, addfav, favs, playfav)]
+#[commands(ping, join, leave, play, skip, stop, playing, queue, addfav, favs, playfav, randfav)]
 pub struct General;
 
 #[command]
@@ -144,6 +144,13 @@ async fn favs(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn playfav(ctx: &Context, msg: &Message) -> CommandResult {
     guildfiles::playfav(ctx, msg).await.expect("unable to retrieve guild files");
+    Ok(())
+}
+
+#[command]
+#[only_in(guilds)]
+async fn randfav(ctx: &Context, msg: &Message) -> CommandResult {
+    guildfiles::randfav(ctx, msg).await.expect("unable to retrieve guild files");
     Ok(())
 }
 

@@ -23,3 +23,6 @@ features = ["macros", "rt-multi-thread", "signal"]
 
 [dependencies.dotenv]
 git = "https://github.com/dotenv-rs/dotenv"
+
+[dependencies.rand]
+version = "0.8"
