@@ -45,10 +45,11 @@ async fn main()
     tracing_subscriber::fmt::init();
 
     let token = env::var("DISCORD_TOKEN").expect("expected discord token in .env file");
+    let prefix = env::var("PREFIX").expect("expected prefix in .env file");
 
     let framework = StandardFramework::new()
         .configure(|c| c
-                   .prefix("!"))
+                   .prefix(&prefix))
         .group(&GENERAL_GROUP);
 
     let mut client = Client::builder(&token)
