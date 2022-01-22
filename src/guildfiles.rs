@@ -4,12 +4,17 @@
  * file functionality
  */
 
+use std::vec::*;
 use std::fs::*;
 use std::io::*;
 use std::path::Path;
-use serenity::client::Context;
+use serenity::client::{Context, /*EventHandler*/};
 use serenity::utils::Colour;
 use serenity::model::channel::Message;
+
+    //InteractionApplicationCommandCallbackDataFlags,
+    //InteractionResponseType};
+//use serenity::builder::{CreateActionRow, CreateButton, CreateSelectMenu, CreateSelectMenuOption};
 use songbird::{input::ytdl_search, create_player};
 use rand::Rng;
 
@@ -127,11 +132,11 @@ async fn write_songdata(queue: &songbird::tracks::TrackQueue, path: &str) -> Res
 pub async fn favs(ctx: &Context, msg: &Message) -> Result<()> {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     let guild_id = guild.id;
-    let mut url = String::from("https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Question_mark_%28black%29.svg/800px-Question_mark_%28black%29.svg.png");
-    if let Some(icon) = guild.icon_url() {
-        url = icon;
-    }
-    //let image = guild.icon_url().unwrap();
+    //let mut url = String::from("https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Question_mark_%28black%29.svg/800px-Question_mark_%28black%29.svg.png");
+    //if let Some(icon) = guild.icon_url() {
+        //url = icon;
+    //}
+    let image = guild.icon_url().unwrap();
     let guild_name = guild.name;
     let favpath = format!("./guild_files/{}", guild_id);
     let size: i32 =  read_dir(&favpath).unwrap().count().try_into().expect("failed to parse");
@@ -142,10 +147,9 @@ pub async fn favs(ctx: &Context, msg: &Message) -> Result<()> {
             .expect("guild data has not been initialized");
         return Ok(());
     }
-
+    let songs = getsongs(&favpath, &size);
     //embed
     let _ = msg.channel_id.send_message(&ctx.http, |m| {
-        let i = size;
         //color
         let colour = Colour::from_rgb(149, 8, 2);
         assert_eq!(colour.r(), 149);
@@ -154,20 +158,13 @@ pub async fn favs(ctx: &Context, msg: &Message) -> Result<()> {
         assert_eq!(colour.tuple(), (149, 8, 2));
         m.embed(|e| {
             e.title(format!("{} favorites", guild_name));
-            e.thumbnail(url);
+            e.thumbnail(image);
             e.description(format!("{} songs in favorites", size));
             e.color(colour);
-            for i in 0..i {
-                //iterate through info for guild files
-                let song = read_dir(&favpath).expect("failed to get path")
-                    .nth(i.try_into().expect("failed to parse"));
-                //open the file and create an embed field
-                let path = song.unwrap().unwrap().path().to_str().unwrap().to_string();
-                if let Ok(mut lines) = read_lines(format!("{}/data.txt", &path)) {
-                    let title = &lines.next().expect("failed to read line").expect("failed to read line");
-                    let channel = &lines.nth(3).expect("failed to read line").expect("failed to read line");
-                    e.field(format!("{}. {}", i+1, title), channel, false);
-                }
+            for i in songs.into_iter() {
+                let title = i.title.clone();
+                let channel = i.channel.clone(); 
+                e.field(title, channel, false);
             }
             e
         })
@@ -349,6 +346,40 @@ pub async fn randfav(ctx: &Context, msg: &Message) -> Result<()> {
             .expect("failed to send message");
     }
     Ok(())
+}
+
+#[derive(Clone)]
+struct Song {
+    title: String,
+    url: String,
+    duration: String,
+    thumbnail: String,
+    channel: String,
+}
+
+fn getsongs(path: &str, size: &i32) -> Vec<Song> {
+    let mut songs: Vec::<Song> = Vec::new();
+    for i in 0..*size  {
+        let song = read_dir(&path).expect("failed to get path")
+            .nth(i.try_into().expect("failed to parse"));
+        let path = song.unwrap().unwrap().path().to_str().unwrap().to_string();
+        if let Ok(mut lines) = read_lines(format!("{}/data.txt", &path)) {
+            let title = &lines.next().expect("failed to read line").expect("failed to read line");
+            let url = &lines.next().expect("failed to read line").expect("failed to read line");
+            let thumbnail = &lines.next().expect("failed to read line").expect("failed to read line");
+            let duration = &lines.next().expect("failed to read line").expect("failed to read line");
+            let channel = &lines.next().expect("failed to read line").expect("failed to read line");
+            let song = Song {
+                title: title.to_string(),
+                url: url.to_string(),
+                duration: duration.to_string(),
+                thumbnail: thumbnail.to_string(),
+                channel: channel.to_string(),
+            };
+            songs.push(song);
+        }
+    }
+    songs
 }
 
 ///read lines from a file

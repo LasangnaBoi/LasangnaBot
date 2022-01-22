@@ -15,7 +15,7 @@ features = ["builtin-queue", "serenity"]
 [dependencies.serenity]
 version = "0.10"
 default-features = false
-features = ["builder", "cache", "model", "client", "voice", "framework", "standard_framework", "rustls_backend"]
+features = ["builder", "cache", "model", "client", "voice", "framework", "standard_framework", "rustls_backend", "http", "unstable_discord_api", "collector"]
 
 [dependencies.tokio]
 version = "1.0"

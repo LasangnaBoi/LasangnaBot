@@ -46,6 +46,7 @@ async fn main()
 
     let token = env::var("DISCORD_TOKEN").expect("expected discord token in .env file");
     let prefix = env::var("PREFIX").expect("expected prefix in .env file");
+    let application_id = env::var("APPLICATION_ID").expect("expected application id in .env file");
 
     let framework = StandardFramework::new()
         .configure(|c| c
@@ -54,6 +55,7 @@ async fn main()
 
     let mut client = Client::builder(&token)
         .event_handler(Handler)
+        .application_id(application_id.parse().expect("failed to parse"))
         .framework(framework)
         .register_songbird()
         .await
