@@ -4,19 +4,23 @@
  * file functionality
  */
 
-use std::vec::*;
-use std::fs::*;
-use std::io::*;
-use std::path::Path;
-use serenity::client::{Context, /*EventHandler*/};
-use serenity::utils::Colour;
-use serenity::model::channel::Message;
-
-    //InteractionApplicationCommandCallbackDataFlags,
-    //InteractionResponseType};
-//use serenity::builder::{CreateActionRow, CreateButton, CreateSelectMenu, CreateSelectMenuOption};
-use songbird::{input::ytdl_search, create_player};
 use rand::Rng;
+use std::{vec::*, fs::*, io::*, path::Path, time::Duration};
+use serenity::{
+    client::Context,
+    utils::Colour,
+    model::{
+        channel::Message,
+        interactions::{
+            message_component::ButtonStyle, InteractionResponseType,
+        }
+    },
+    builder::{CreateEmbed, CreateButton, CreateActionRow},
+    futures::StreamExt};
+use songbird::{
+    create_player,
+    input::ytdl_search,
+};
 
 ///add current song's data to the guild file
 pub async fn addfav(ctx: &Context, msg: &Message) -> std::io::Result<()> {
@@ -132,10 +136,10 @@ async fn write_songdata(queue: &songbird::tracks::TrackQueue, path: &str) -> Res
 pub async fn favs(ctx: &Context, msg: &Message) -> Result<()> {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     let guild_id = guild.id;
-    //let mut url = String::from("https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Question_mark_%28black%29.svg/800px-Question_mark_%28black%29.svg.png");
-    //if let Some(icon) = guild.icon_url() {
-        //url = icon;
-    //}
+    let mut url = String::from("https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Question_mark_%28black%29.svg/800px-Question_mark_%28black%29.svg.png");
+    if let Some(icon) = guild.icon_url() {
+        url = icon;
+    }
     let image = guild.icon_url().unwrap();
     let guild_name = guild.name;
     let favpath = format!("./guild_files/{}", guild_id);
@@ -147,28 +151,129 @@ pub async fn favs(ctx: &Context, msg: &Message) -> Result<()> {
             .expect("guild data has not been initialized");
         return Ok(());
     }
+    //color
+    let colour = Colour::from_rgb(149, 8, 2);
+    assert_eq!(colour.r(), 149);
+    assert_eq!(colour.g(), 8);
+    assert_eq!(colour.b(), 2);
+    assert_eq!(colour.tuple(), (149, 8, 2));
     let songs = getsongs(&favpath, &size);
+    let pages = size/10;
+    let mut remsongs = songs.clone();
+    let mut n = 1;
+    let mut embeds: Vec<CreateEmbed> = Vec::new();
+    for _ in 0..pages {
+        let binding = remsongs.clone();
+        let (current, remaining) = binding.split_at(10);
+        let mut e = CreateEmbed::default();
+        e.title(format!("{} favorites", guild_name));
+        e.thumbnail(image.clone());
+        e.description(format!("{} songs in favorites", size));
+        e.color(colour);
+        for i in current.iter() {
+            let title = i.title.clone();
+            let channel = i.channel.clone(); 
+            e.field(format!("{}. {}", n, title), channel, false);
+            n += 1;
+        }
+        remsongs = remaining.to_vec();
+        embeds.push(e);
+    }
+    if !remsongs.is_empty() {
+        let mut e = CreateEmbed::default();
+        e.title(format!("{} favorites", guild_name));
+        e.thumbnail(image.clone());
+        e.description(format!("{} songs in favorites", size));
+        e.color(colour);
+        for i in remsongs.iter() {
+            let title = i.title.clone();
+            let channel = i.channel.clone(); 
+            e.field(format!("{}. {}", n, title), channel, false);
+            n += 1;
+        }
+        embeds.push(e);
+    }
     //embed
-    let _ = msg.channel_id.send_message(&ctx.http, |m| {
-        //color
-        let colour = Colour::from_rgb(149, 8, 2);
-        assert_eq!(colour.r(), 149);
-        assert_eq!(colour.g(), 8);
-        assert_eq!(colour.b(), 2);
-        assert_eq!(colour.tuple(), (149, 8, 2));
+    
+    //create buttons
+    let mut last = CreateButton::default();
+    last.custom_id("last");
+    last.label("last");
+    last.style(ButtonStyle::Primary);
+    let mut next = CreateButton::default();
+    next.custom_id("next");
+    next.label("next");
+    next.style(ButtonStyle::Primary);
+
+    //create action row
+    let mut ar = CreateActionRow::default();
+    ar.add_button(last);
+    ar.add_button(next);
+
+    let mut i = 10;
+    if size <= 10 {
+        i = size;
+    }
+
+    //create message
+    let m = msg.channel_id.send_message(&ctx.http, |m| {
+        m.components(|c| c.add_action_row(ar));
         m.embed(|e| {
             e.title(format!("{} favorites", guild_name));
-            e.thumbnail(image);
+            e.thumbnail(url);
             e.description(format!("{} songs in favorites", size));
             e.color(colour);
-            for i in songs.into_iter() {
-                let title = i.title.clone();
-                let channel = i.channel.clone(); 
-                e.field(title, channel, false);
+            for i in 0..i {
+                //iterate through info for guild files
+                let song = read_dir(&favpath).expect("failed to get path")
+                    .nth(i.try_into().expect("failed to parse"));
+                //open the file and create an embed field
+                let path = song.unwrap().unwrap().path().to_str().unwrap().to_string();
+                if let Ok(mut lines) = read_lines(format!("{}/data.txt", &path)) {
+                    let title = &lines.next().expect("failed to read line").expect("failed to read line");
+                    let channel = &lines.nth(3).expect("failed to read line").expect("failed to read line");
+                    e.field(format!("{}. {}", i+1, title), channel, false);
+                }
             }
             e
         })
-    }).await;
+    }).await.unwrap();
+
+    //create interaction response
+    let mut n = 0;
+    let mut cib = m.await_component_interactions(&ctx).timeout(Duration::from_secs(60*3)).await;
+    while let Some(mci) = cib.next().await {
+        if mci.data.custom_id == "last" {
+            mci.create_interaction_response(&ctx, |r| {
+                r.kind(InteractionResponseType::UpdateMessage);
+                r.interaction_response_data(|d| {
+                    if n != 0 {
+                        n -= 1;
+                        d.add_embed(embeds.clone().into_iter().nth(n).unwrap())
+                    } else {
+                        d.add_embed(embeds.clone().into_iter().next().unwrap())
+                    }
+                })
+            })
+            .await
+            .unwrap();
+        }
+        if mci.data.custom_id == "next" {
+            mci.create_interaction_response(&ctx, |r| {
+                r.kind(InteractionResponseType::UpdateMessage);
+                r.interaction_response_data(|d| {
+                    if n < pages.try_into().unwrap() {
+                        n += 1;
+                        d.add_embed(embeds.clone().into_iter().nth(n).unwrap())
+                    } else {
+                        d.add_embed(embeds.clone().into_iter().nth(pages.try_into().expect("failed to parse")).unwrap())
+                    }
+                })
+            })
+            .await
+            .unwrap();
+        }
+    }
     Ok(())
 }
 
@@ -292,14 +397,12 @@ pub async fn randfav(ctx: &Context, msg: &Message) -> Result<()> {
 
         let path = song.unwrap().unwrap().path().to_str().unwrap().to_string();
         if let Ok(mut lines) = read_lines(format!("{}/data.txt", &path)) {
-
             //get source from YouTube
             let url = &lines.nth(1).expect("failed to read line").expect("failes to read line");
             let source = match ytdl_search(url).await {
                 Ok(source) => source,
                 Err(why) => {
                     println!("Err starting source: {:?}", why);
-
                     msg.reply(ctx, "Error sourcing ffmpeg")
                         .await
                         .expect("error sending message");
@@ -333,7 +436,6 @@ pub async fn randfav(ctx: &Context, msg: &Message) -> Result<()> {
                     e
                 })
             }).await;
-
             //add to queue
             let (mut audio, _) = create_player(source);
             audio.set_volume(0.5);

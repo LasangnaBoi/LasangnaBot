@@ -11,10 +11,9 @@ use dotenv::dotenv;
 use std::env;
 use tokio::join;
 use songbird::SerenityInit;
-use serenity::client::Context;
 use serenity::{
     async_trait,
-    client::{Client, EventHandler},
+    client::{Client, EventHandler, Context},
     framework::{
         StandardFramework,
         standard::{
