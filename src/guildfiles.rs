@@ -35,6 +35,7 @@ use songbird::{
 };
 
 //song struct
+#[allow(dead_code)]
 #[derive(Clone)]
 struct Song {
     title: String,
@@ -102,7 +103,7 @@ async fn write_songdata(queue: &songbird::tracks::TrackQueue, path: &str) -> Res
 }
 
 ///read lines from a file
-fn read_lines<P>(filename: P) -> Result<Lines<BufReader<File>>>
+pub fn read_lines<P>(filename: P) -> Result<Lines<BufReader<File>>>
 where P: AsRef<Path>, {
     let file = File::open(filename)?;
     Ok(BufReader::new(file).lines())
