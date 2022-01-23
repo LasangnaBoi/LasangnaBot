@@ -71,7 +71,7 @@ async fn main()
 }
 
 #[group]
-#[commands(ping, join, leave, play, skip, stop, playing, queue, addfav, favs, playfav, randfav, playfavat, help)]
+#[commands(ping, join, leave, play, skip, stop, playing, queue, addfav, favs, playfav, randfav, playfavat, help, dad)]
 pub struct General;
 
 #[command]
@@ -169,6 +169,13 @@ async fn playfavat(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn help(ctx: &Context, msg: &Message) -> CommandResult {
     misc::help::help(ctx, msg).await.expect("command failed");
+    Ok(())
+}
+
+#[command]
+#[only_in(guilds)]
+async fn dad(ctx: &Context, msg: &Message) -> CommandResult {
+    misc::dad::dad(ctx, msg).await.expect("command failed");
     Ok(())
 }
 
