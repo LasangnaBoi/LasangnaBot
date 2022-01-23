@@ -6,6 +6,7 @@
 #![feature(path_try_exists)]
 mod voice;
 mod guildfiles;
+mod misc;
 
 use dotenv::dotenv;
 use std::env;
@@ -83,131 +84,91 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 #[only_in(guilds)]
 async fn join(ctx: &Context, msg: &Message) -> CommandResult {
-    voice::join(ctx, msg).await.expect("error joining");
+    voice::join::join(ctx, msg).await.expect("error joining");
     Ok(())
 }
 
 #[command]
 #[only_in(guilds)]
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
-    voice::leave(ctx, msg).await.expect("error leaving channel");
+    voice::leave::leave(ctx, msg).await.expect("error leaving channel");
     Ok(())
 }
 
 #[command]
 #[only_in(guilds)]
 async fn play(ctx: &Context, msg: &Message) -> CommandResult {
-    voice::play(ctx, msg).await.expect("error finding song");
+    voice::play::play(ctx, msg).await.expect("error finding song");
     Ok(())
 }
 
 #[command]
 #[only_in(guilds)]
 async fn skip(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
-    voice::skip(ctx, msg, _args).await.expect("error skipping song");
+    voice::skip::skip(ctx, msg, _args).await.expect("error skipping song");
     Ok(())
 }
 
 #[command]
 #[only_in(guilds)]
 async fn stop(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
-    voice::stop(ctx, msg, _args).await.expect("error stopping");
+    voice::stop::stop(ctx, msg, _args).await.expect("error stopping");
     Ok(())
 }
 
 #[command]
 #[only_in(guilds)]
 async fn playing(ctx: &Context, msg: &Message) -> CommandResult {
-    voice::playing(ctx, msg).await.expect("error getting current song");
+    voice::playing::playing(ctx, msg).await.expect("error getting current song");
     Ok(())
 }
 
 #[command]
 #[only_in(guilds)]
 async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
-    voice::queue(ctx, msg).await.expect("error getting queue");
+    voice::queue::queue(ctx, msg).await.expect("error getting queue");
     Ok(())
 }
 
 #[command]
 #[only_in(guilds)]
 async fn addfav(ctx: &Context, msg: &Message) -> CommandResult {
-    guildfiles::addfav(ctx, msg).await.expect("unable to write file");
+    guildfiles::addfav::addfav(ctx, msg).await.expect("unable to write file");
     Ok(())
 }
 
 #[command]
 #[only_in(guilds)]
 async fn favs(ctx: &Context, msg: &Message) -> CommandResult {
-    guildfiles::favs(ctx, msg).await.expect("unable to retrieve guild files");
+    guildfiles::favs::favs(ctx, msg).await.expect("unable to retrieve guild files");
     Ok(())
 }
 
 #[command]
 #[only_in(guilds)]
 async fn playfav(ctx: &Context, msg: &Message) -> CommandResult {
-    guildfiles::playfav(ctx, msg).await.expect("unable to retrieve guild files");
+    guildfiles::playfav::playfav(ctx, msg).await.expect("unable to retrieve guild files");
     Ok(())
 }
 
 #[command]
 #[only_in(guilds)]
 async fn randfav(ctx: &Context, msg: &Message) -> CommandResult {
-    guildfiles::randfav(ctx, msg).await.expect("unable to retrieve guild files");
+    guildfiles::randfav::randfav(ctx, msg).await.expect("unable to retrieve guild files");
     Ok(())
 }
 
 #[command]
 #[only_in(guilds)]
 async fn playfavat(ctx: &Context, msg: &Message) -> CommandResult {
-    guildfiles::playfavat(ctx, msg).await.expect("unable to retrieve guild files");
+    guildfiles::playfavat::playfavat(ctx, msg).await.expect("unable to retrieve guild files");
     Ok(())
 }
 
 #[command]
 #[only_in(guilds)]
 async fn help(ctx: &Context, msg: &Message) -> CommandResult {
-//#[commands(ping, join, leave, play, skip, stop, playing, queue, addfav, favs, playfav, randfav, playfavat, help)]
-    //create embeds
-    let _ = msg.channel_id.send_message(&ctx.http, |m| {
-        //color
-        let colour = Colour::from_rgb(149, 8, 2);
-        assert_eq!(colour.r(), 149);
-        assert_eq!(colour.g(), 8);
-        assert_eq!(colour.b(), 2);
-        assert_eq!(colour.tuple(), (149, 8, 2));
-        m.embed(|e| {
-            e.title("Voice Commands");
-            e.color(colour);
-            e.field("join", "Join voice channel. Required to use voice functionality, must be in a voice channel to use.", false);
-            e.field("leave", "Disconnect the bot from the current voice channel, must be in a voice channel to use.", false);
-            e.field("play", "Search YouTube for a song using a provided argument. For example. '$play a song' will search youtube for 'a song'. Must be in a voice channel to use.", false);
-            e.field("skip", "Skip the current song, must be in a voice channel to use.", false);
-            e.field("stop", "Stop playing and clear the queue, must be in a voice channel to use", false);
-            e.field("playing", "Get information from current song, must be in a voice channel to use.", false);
-            e.field("queue", "Get the current queue.", false);
-            e
-        })
-    }).await;
-    let _ = msg.channel_id.send_message(&ctx.http, |m| {
-        //color
-        let colour = Colour::from_rgb(149, 8, 2);
-        assert_eq!(colour.r(), 149);
-        assert_eq!(colour.g(), 8);
-        assert_eq!(colour.b(), 2);
-        assert_eq!(colour.tuple(), (149, 8, 2));
-        m.embed(|e| {
-            e.title("Favorites Commands");
-            e.color(colour);
-            e.field("addfav", "Add the current song to favorites, must be in a voice channel to use.", false);
-            e.field("favs", "List the server's favorited songs.", false);
-            e.field("playfav", "Creates a dropdown menu of favorites, select a song to play it. Must me in a voice channel to use.", false);
-            e.field("playfavat", "Play a song, using the index of the song from the 'favs' command as an argument. For example, '$playfavat 4' will play the fourth song on the favorites list. Must be in a voice channel to use.", false);
-            e.field("randfav", "Play a random song from the server's favorites, must be in a voice channel to use.", false);
-            e
-        })
-    }).await;
-
+    misc::help::help(ctx, msg).await.expect("command failed");
     Ok(())
 }
 
