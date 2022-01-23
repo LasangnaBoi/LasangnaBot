@@ -21,6 +21,7 @@ use serenity::{
             macros::{command, group},
         },
     },
+    utils::Colour,
     model::{channel::Message, gateway::{Ready, Activity}},
     Result as SerenityResult,
 };
@@ -69,7 +70,7 @@ async fn main()
 }
 
 #[group]
-#[commands(ping, join, leave, play, skip, stop, playing, queue, addfav, favs, playfav, randfav, playfavat)]
+#[commands(ping, join, leave, play, skip, stop, playing, queue, addfav, favs, playfav, randfav, playfavat, help)]
 pub struct General;
 
 #[command]
@@ -160,6 +161,53 @@ async fn randfav(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn playfavat(ctx: &Context, msg: &Message) -> CommandResult {
     guildfiles::playfavat(ctx, msg).await.expect("unable to retrieve guild files");
+    Ok(())
+}
+
+#[command]
+#[only_in(guilds)]
+async fn help(ctx: &Context, msg: &Message) -> CommandResult {
+//#[commands(ping, join, leave, play, skip, stop, playing, queue, addfav, favs, playfav, randfav, playfavat, help)]
+    //create embeds
+    let _ = msg.channel_id.send_message(&ctx.http, |m| {
+        //color
+        let colour = Colour::from_rgb(149, 8, 2);
+        assert_eq!(colour.r(), 149);
+        assert_eq!(colour.g(), 8);
+        assert_eq!(colour.b(), 2);
+        assert_eq!(colour.tuple(), (149, 8, 2));
+        m.embed(|e| {
+            e.title("Voice Commands");
+            e.color(colour);
+            e.field("join", "Join voice channel. Required to use voice functionality, must be in a voice channel to use.", false);
+            e.field("leave", "Disconnect the bot from the current voice channel, must be in a voice channel to use.", false);
+            e.field("play", "Search YouTube for a song using a provided argument. For example. '$play a song' will search youtube for 'a song'. Must be in a voice channel to use.", false);
+            e.field("skip", "Skip the current song, must be in a voice channel to use.", false);
+            e.field("stop", "Stop playing and clear the queue, must be in a voice channel to use", false);
+            e.field("playing", "Get information from current song, must be in a voice channel to use.", false);
+            e.field("queue", "Get the current queue.", false);
+            e
+        })
+    }).await;
+    let _ = msg.channel_id.send_message(&ctx.http, |m| {
+        //color
+        let colour = Colour::from_rgb(149, 8, 2);
+        assert_eq!(colour.r(), 149);
+        assert_eq!(colour.g(), 8);
+        assert_eq!(colour.b(), 2);
+        assert_eq!(colour.tuple(), (149, 8, 2));
+        m.embed(|e| {
+            e.title("Favorites Commands");
+            e.color(colour);
+            e.field("addfav", "Add the current song to favorites, must be in a voice channel to use.", false);
+            e.field("favs", "List the server's favorited songs.", false);
+            e.field("playfav", "Creates a dropdown menu of favorites, select a song to play it. Must me in a voice channel to use.", false);
+            e.field("playfavat", "Play a song, using the index of the song from the 'favs' command as an argument. For example, '$playfavat 4' will play the fourth song on the favorites list. Must be in a voice channel to use.", false);
+            e.field("randfav", "Play a random song from the server's favorites, must be in a voice channel to use.", false);
+            e
+        })
+    }).await;
+
     Ok(())
 }
 
