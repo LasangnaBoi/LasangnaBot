@@ -83,7 +83,7 @@ async fn main() {
 #[group]
 #[commands(
     ping, join, leave, play, skip, stop, playing, queue, addfav, favs, playfav, randfav, playfavat,
-    help, dad
+    help, dad, delfav
 )]
 pub struct General;
 
@@ -211,6 +211,13 @@ async fn help(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn dad(ctx: &Context, msg: &Message) -> CommandResult {
     misc::dad::dad(ctx, msg).await.expect("command failed");
+    Ok(())
+}
+
+#[command]
+#[only_in(guilds)]
+async fn delfav(ctx: &Context, msg: &Message) -> CommandResult {
+    guildfiles::delfav::delfav(ctx, msg).await.expect("command failed");
     Ok(())
 }
 

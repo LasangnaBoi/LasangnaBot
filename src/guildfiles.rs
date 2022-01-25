@@ -9,7 +9,7 @@ pub mod favs;
 pub mod playfav;
 pub mod playfavat;
 pub mod randfav;
-//pub mod delfav;
+pub mod delfav;
 
 use rand::Rng;
 use std::{vec::*, fs::*, io::*, path::Path, time::Duration};

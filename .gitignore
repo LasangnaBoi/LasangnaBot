@@ -1,7 +1,4 @@
 /target
 /guild_files
 /misc/dadquotes
-Cargo.lock
 .env
-
-src/guildfiles/delfav.rs
