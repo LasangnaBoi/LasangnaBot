@@ -3,3 +3,5 @@
 /misc/dadquotes
 Cargo.lock
 .env
+
+src/guildfiles/delfav.rs

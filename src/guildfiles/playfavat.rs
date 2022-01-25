@@ -43,7 +43,7 @@ pub async fn playfavat(ctx: &Context, msg: &Message) -> Result<()> {
         if let Ok(mut lines) = read_lines(format!("{}/data.txt", &path)) {
 
             //get source from YouTube
-            let url = &lines.nth(1).expect("failed to read line").expect("failes to read line");
+            let url = &lines.nth(0).expect("failed to read line").expect("failes to read line");
             let source = match ytdl_search(url).await {
                 Ok(source) => source,
                 Err(why) => {
