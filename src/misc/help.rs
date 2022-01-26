@@ -42,6 +42,7 @@ pub async fn help(ctx: &Context, msg: &Message) -> CommandResult {
             e.title("Favorites Commands");
             e.color(colour);
             e.field("addfav", "Add the current song to favorites, must be in a voice channel to use.", false);
+            e.field("addfav", "remove a song from favorites", false);
             e.field("favs", "List the server's favorited songs.", false);
             e.field("playfav", "Creates a dropdown menu of favorites, select a song to play it. Must me in a voice channel to use.", false);
             e.field("playfavat", "Play a song, using the index of the song from the 'favs' command as an argument. For example, '$playfavat 4' will play the fourth song on the favorites list. Must be in a voice channel to use.", false);
