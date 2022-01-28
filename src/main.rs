@@ -43,7 +43,7 @@ impl EventHandler for Handler {
     }
     ///when a message is sent
     async fn message(&self, ctx: Context, msg: Message) {
-        if msg.content.to_string() == "uwu" {
+        if msg.content.to_lowercase().contains("uwu") {
             images::e621(&ctx, &msg).await.expect("failed to send message");
         }
     }
@@ -105,8 +105,7 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     voice::leave::leave(ctx, msg)
-        .await
-        .expect("error leaving channel");
+        .await.expect("error leaving channel");
     Ok(())
 }
 
@@ -114,8 +113,7 @@ async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn play(ctx: &Context, msg: &Message) -> CommandResult {
     voice::play::play(ctx, msg)
-        .await
-        .expect("error finding song");
+        .await.expect("error finding song");
     Ok(())
 }
 
@@ -123,8 +121,7 @@ async fn play(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn skip(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     voice::skip::skip(ctx, msg, _args)
-        .await
-        .expect("error skipping song");
+        .await.expect("error skipping song");
     Ok(())
 }
 
@@ -132,8 +129,7 @@ async fn skip(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
 #[only_in(guilds)]
 async fn stop(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     voice::stop::stop(ctx, msg, _args)
-        .await
-        .expect("error stopping");
+        .await.expect("error stopping");
     Ok(())
 }
 
@@ -141,8 +137,7 @@ async fn stop(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
 #[only_in(guilds)]
 async fn playing(ctx: &Context, msg: &Message) -> CommandResult {
     voice::playing::playing(ctx, msg)
-        .await
-        .expect("error getting current song");
+        .await.expect("error getting current song");
     Ok(())
 }
 
@@ -150,8 +145,7 @@ async fn playing(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
     voice::queue::queue(ctx, msg)
-        .await
-        .expect("error getting queue");
+        .await.expect("error getting queue");
     Ok(())
 }
 
@@ -159,8 +153,7 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn addfav(ctx: &Context, msg: &Message) -> CommandResult {
     guildfiles::addfav::addfav(ctx, msg)
-        .await
-        .expect("unable to write file");
+        .await.expect("unable to write file");
     Ok(())
 }
 
@@ -168,8 +161,7 @@ async fn addfav(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn favs(ctx: &Context, msg: &Message) -> CommandResult {
     guildfiles::favs::favs(ctx, msg)
-        .await
-        .expect("unable to retrieve guild files");
+        .await.expect("unable to retrieve guild files");
     Ok(())
 }
 
@@ -177,8 +169,7 @@ async fn favs(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn playfav(ctx: &Context, msg: &Message) -> CommandResult {
     guildfiles::playfav::playfav(ctx, msg)
-        .await
-        .expect("unable to retrieve guild files");
+        .await.expect("unable to retrieve guild files");
     Ok(())
 }
 
@@ -186,8 +177,7 @@ async fn playfav(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn randfav(ctx: &Context, msg: &Message) -> CommandResult {
     guildfiles::randfav::randfav(ctx, msg)
-        .await
-        .expect("unable to retrieve guild files");
+        .await.expect("unable to retrieve guild files");
     Ok(())
 }
 
@@ -195,8 +185,7 @@ async fn randfav(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn playfavat(ctx: &Context, msg: &Message) -> CommandResult {
     guildfiles::playfavat::playfavat(ctx, msg)
-        .await
-        .expect("unable to retrieve guild files");
+        .await.expect("unable to retrieve guild files");
     Ok(())
 }
 
