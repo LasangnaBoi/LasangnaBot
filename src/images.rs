@@ -15,8 +15,8 @@ use rand::Rng;
 pub async fn e621(ctx: &Context, msg: &Message) -> CommandResult {
     let client = Client::new("https://e621.net", "LasangnaBot/1.0 (by LasangnaBot on e621)")?;
     let mut results = client
-        .post_search(&["-female", "-webm", "kissing", "rating:s"][..])
-        .take(50);
+        .post_search(&["-flash", "-webm", "-child", "rating:s"][..])
+        .take(300);
     let mut urls: Vec<String> = Vec::new();
     while let Some(post) = results.next().await {
         match post {
@@ -24,11 +24,14 @@ pub async fn e621(ctx: &Context, msg: &Message) -> CommandResult {
                 let url: url::Url = post.file.url.unwrap().parse().unwrap();
                 urls.push(url.to_string());
             }
-            Err(e) => println!("- couldn't load post: {}", e),
+            Err(_) => {
+                msg.reply(ctx, "unable to source image")
+                    .await.expect("failed to send message"); 
+            }
         }
     }
     //create message
-    let rng = rand::thread_rng().gen_range(0..49);
+    let rng = rand::thread_rng().gen_range(0..299);
     let url = urls.into_iter().nth(rng).unwrap().to_string();
     let tag = msg.author.tag();
     println!("{}", url);

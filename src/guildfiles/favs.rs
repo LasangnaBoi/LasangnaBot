@@ -25,6 +25,7 @@ pub async fn favs(ctx: &Context, msg: &Message) -> Result<()> {
             .expect("guild data has not been initialized");
         return Ok(());
     }
+
     //color
     let colour = Colour::from_rgb(149, 8, 2);
     assert_eq!(colour.r(), 149);
@@ -67,7 +68,6 @@ pub async fn favs(ctx: &Context, msg: &Message) -> Result<()> {
         }
         embeds.push(e);
     }
-    //embed
     
     //create buttons
     let mut last = CreateButton::default();
@@ -111,7 +111,7 @@ pub async fn favs(ctx: &Context, msg: &Message) -> Result<()> {
             }
             e
         })
-    }).await.unwrap();
+    }).await.expect("failed to send message");
 
     //create interaction response
     let mut n = 0;
@@ -129,8 +129,7 @@ pub async fn favs(ctx: &Context, msg: &Message) -> Result<()> {
                     }
                 })
             })
-            .await
-            .unwrap();
+            .await.expect("failed to get iteraction");
         }
         if mci.data.custom_id == "next" {
             mci.create_interaction_response(&ctx, |r| {
@@ -144,8 +143,7 @@ pub async fn favs(ctx: &Context, msg: &Message) -> Result<()> {
                     }
                 })
             })
-            .await
-            .unwrap();
+            .await.expect("failed to get iteraction");
         }
     }
     Ok(())

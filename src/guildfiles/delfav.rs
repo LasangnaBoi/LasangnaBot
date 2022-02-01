@@ -34,7 +34,7 @@ pub async fn delfav(ctx: &Context, msg: &Message) -> Result<()> {
             return Ok(());
         }
     };
-    if query>0 {
+    if query > 0 {
         //get favorites directory
         let mut favdir = read_dir(&favpath)?;
         let _ = match favdir.nth(query-1) {

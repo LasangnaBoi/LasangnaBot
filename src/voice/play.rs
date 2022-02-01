@@ -12,30 +12,20 @@ pub async fn play(ctx: &Context, msg: &Message) -> CommandResult {
     let query = &msg.content[5..];
     let guild = msg.guild(&ctx.cache).await.unwrap();
     let guild_id = guild.id;
-
-    check_msg(
-        msg.channel_id
-        .say(&ctx.http, format!("searching YouTube for{}...", query))
-        .await);
-
-    //create manager
-    let manager = songbird::get(ctx)
-        .await
-        .expect("songbird error")
-        .clone();
+    let manager = songbird::get(ctx).await.expect("songbird error").clone();
 
     //create audio source
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;
+        msg.reply(&ctx.http, format!("searching YouTube for{}...", query))
+            .await.expect("failed to send message");
 
         //get source from YouTube
         let source = match ytdl_search(query).await {
             Ok(source) => source,
-            Err(why) => {
-                println!("Err starting source: {:?}", why);
-
-                check_msg(msg.channel_id.say(&ctx.http, "Error sourcing ffmpeg").await);
-
+            Err(_) => {
+                msg.reply(ctx, "Error sourcing ffmpeg")
+                    .await.expect("error sending message");
                 return Ok(());
             },
         };
@@ -72,7 +62,6 @@ pub async fn play(ctx: &Context, msg: &Message) -> CommandResult {
         audio.set_volume(0.5);
         handler.enqueue(audio);
 
-    //if not in a voice channel
     } else {
         check_msg(
             msg.channel_id
