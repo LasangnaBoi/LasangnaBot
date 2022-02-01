@@ -15,7 +15,7 @@ use rand::Rng;
 pub async fn e621(ctx: &Context, msg: &Message) -> CommandResult {
     let client = Client::new("https://e621.net", "LasangnaBot/1.0 (by LasangnaBot on e621)")?;
     let mut results = client
-        .post_search(&["-flash", "-webm", "-child", "rating:s"][..])
+        .post_search(&["kissing", "-webm", "-child", "rating:s"][..])
         .take(300);
     let mut urls: Vec<String> = Vec::new();
     while let Some(post) = results.next().await {

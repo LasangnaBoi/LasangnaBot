@@ -30,13 +30,11 @@ pub async fn addfav(ctx: &Context, msg: &Message) -> std::io::Result<()> {
     if let Some(handler_lock) = manager.get(guild_id) {
         let handler = handler_lock.lock().await;
         let queue = handler.queue();
-        //check if anything is playing
         if queue.is_empty() {
             msg.reply(ctx, "Nothing is being played!".to_string())
                 .await
                 .expect("unable to send");
             return Ok(());
-        //if something is playing
         } else {
             //get song data
             let song = &queue.current().unwrap().metadata().clone();
